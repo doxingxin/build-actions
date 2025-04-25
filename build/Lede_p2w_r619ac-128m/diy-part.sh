@@ -46,10 +46,10 @@ export Password_free_login="1"               # 设置首次登录后台密码为
 export AdGuardHome_Core="1"                  # 编译固件时自动增加AdGuardHome插件和AdGuardHome插件核心,需要注意的是一个核心20多MB的,小闪存机子搞不来(1为启用命令,填0为不作修改)
 
 # 开启NTFS格式盘挂载
-export Automatic_Mount_Settings="0"          # 编译时加入开启NTFS格式盘挂载的所需依赖(1为启用命令,填0为不作修改)
+export Automatic_Mount_Settings="1"          # 编译时加入开启NTFS格式盘挂载的所需依赖(1为启用命令,填0为不作修改)
 
 # 去除网络共享(autosamba)
-export Disable_autosamba="1"                 # 去掉源码默认自选的luci-app-samba或luci-app-samba4(1为启用命令,填0为不作修改)
+export Disable_autosamba="0"                 # 去掉源码默认自选的luci-app-samba或luci-app-samba4(1为启用命令,填0为不作修改)
 
 # 其他
 export Ttyd_account_free_login="0"           # 设置ttyd免密登录(1为启用命令,填0为不作修改)
@@ -70,26 +70,26 @@ export Cancel_running="1"                    # 取消路由器每天跑分任务
 grep -rl '"终端"' . | xargs -r sed -i 's?"终端"?"TTYD"?g'
 grep -rl '"TTYD 终端"' . | xargs -r sed -i 's?"TTYD 终端"?"TTYD"?g'
 grep -rl '"网络存储"' . | xargs -r sed -i 's?"网络存储"?"NAS"?g'
-grep -rl '"实时流量监测"' . | xargs -r sed -i 's?"实时流量监测"?"流量"?g'
-grep -rl '"KMS 服务器"' . | xargs -r sed -i 's?"KMS 服务器"?"KMS激活"?g'
+grep -rl '"实时流量监测"' . | xargs -r sed -i 's?"实时流量监测"?"流量监测"?g'
+grep -rl '"KMS 服务器"' . | xargs -r sed -i 's?"KMS 服务器"?"KMS激活服务"?g'
 grep -rl '"USB 打印服务器"' . | xargs -r sed -i 's?"USB 打印服务器"?"打印服务"?g'
 grep -rl '"Web 管理"' . | xargs -r sed -i 's?"Web 管理"?"Web管理"?g'
-grep -rl '"管理权"' . | xargs -r sed -i 's?"管理权"?"改密码"?g'
+grep -rl '"管理权"' . | xargs -r sed -i 's?"管理权"?"密码权限管理"?g'
 grep -rl '"带宽监控"' . | xargs -r sed -i 's?"带宽监控"?"监控"?g'
 
 
 # 整理固件包时候,删除您不想要的固件或者文件,让它不需要上传到Actions空间(根据编译机型变化,自行调整删除名称)
-# cat >"$CLEAR_PATH" <<-EOF
+cat >"$CLEAR_PATH" <<-EOF
 # packages
 # config.buildinfo
-# feeds.buildinfo
-# sha256sums
+feeds.buildinfo
+sha256sums
 # version.buildinfo
-# profiles.json
-# openwrt-x86-64-generic-kernel.bin
-# openwrt-x86-64-generic.manifest
+profiles.json
+ipq40xx-generic-p2w_r619ac-128m-initramfs-fit-zImage.itb
+ipq40xx-generic-p2w_r619ac-128m.manifest
 # openwrt-x86-64-generic-squashfs-rootfs.img.gz
-# EOF
+EOF
 
 # 在线更新时，删除不想保留固件的某个文件，在EOF跟EOF之间加入删除代码，记住这里对应的是固件的文件路径，比如： rm -rf /etc/config/luci
 # cat >>$DELETE <<-EOF
