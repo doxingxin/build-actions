@@ -82,10 +82,10 @@ grep -rl '"带宽监控"' . | xargs -r sed -i 's?"带宽监控"?"监控"?g'
 cat >"$CLEAR_PATH" <<-EOF
 # packages
 # config.buildinfo
-feeds.buildinfo
-sha256sums
+# feeds.buildinfo
+# sha256sums
 # version.buildinfo
-profiles.json
+# profiles.json
 ipq40xx-generic-p2w_r619ac-128m-initramfs-fit-zImage.itb
 ipq40xx-generic-p2w_r619ac-128m.manifest
 # openwrt-x86-64-generic-squashfs-rootfs.img.gz
