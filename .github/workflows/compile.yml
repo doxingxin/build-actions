@@ -9,7 +9,7 @@ on:
     branches:
       - main
     paths:
-      - 'build/Offcial-p2w_r619ac-128m/relevance/start'
+      - 'build/Immirtakwrt_p2w_r619ac-128m/relevance/start'
 
 env:
   GIT_REPOSITORY: ${{github.repository}}
@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-          target: [Offcial-p2w_r619ac-128m]
+            target: [Immirtakwrt_p2w_r619ac-128m]
 
     steps:    
     - name: 准备结束
