@@ -28,12 +28,11 @@ on:
       CONFIG_FILE:
         description: '请选择[seed文件夹内]的配置文件'
         required: true
-        default: 'x86_64'
+        default: 'p2w_r619ac-128m'
         type: choice
         options:
           - 'x86_64'
           - 'p2w_r619ac-128m'
-          - 'aarch64'
       INFORMATION_NOTICE:
         description: 'Telegram或pushplus信息通知'
         required: true
@@ -64,7 +63,7 @@ on:
       UPLOAD_RELEASE:
         description: '发布固件到 Github Releases'
         required: false
-        default: 'false'
+        default: 'true'
         type: boolean
       CACHEWRTBUILD_SWITCH:
         description: '缓存加速编译'
@@ -74,7 +73,7 @@ on:
       UPDATE_FIRMWARE_ONLINE:
         description: '在线更新固/打包aarch64系列为img固件'
         required: false
-        default: 'true'
+        default: 'false'
         type: boolean
 
 
