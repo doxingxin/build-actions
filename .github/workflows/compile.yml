@@ -9,7 +9,7 @@ on:
     branches:
       - main
     paths:
-      - 'build/p2w_r619ac/relevance/start'
+      - 'build/Lede/relevance/start'
 
 env:
   GIT_REPOSITORY: ${{github.repository}}
@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-       target: [p2w_r619ac]
+       target: [Lede]
 
     steps:
     - name: 释放Ubuntu磁盘空间
