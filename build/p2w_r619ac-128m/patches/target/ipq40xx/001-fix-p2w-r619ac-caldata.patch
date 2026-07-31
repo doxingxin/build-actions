@@ -1,0 +1,25 @@
+--- a/target/linux/ipq40xx/files/arch/arm/boot/dts/qcom/ipq4019-p2w_r619ac.dts
++++ b/target/linux/ipq40xx/files/arch/arm/boot/dts/qcom/ipq4019-p2w_r619ac.dts
+@@ -66,16 +66,8 @@
+ };
+
+ &wifi0 {
+-	nvmem-cell-names = "calibration";
+-	nvmem-cells = <&cal_wifi0>;
++	qcom,ath10k-calibration-variant = "P&W-R619AC";
+ };
+
+ &wifi1 {
+-	nvmem-cell-names = "calibration";
+-	nvmem-cells = <&cal_wifi1>;
++	qcom,ath10k-calibration-variant = "P&W-R619AC";
+ };
+
+-&art {
+-	cal_wifi0: calibration-wifi0@0 {
+-		reg = <0x0 0x1000>;
+-	};
+-	cal_wifi1: calibration-wifi1@1000 {
+-		reg = <0x1000 0x1000>;
+-	};
+-};
