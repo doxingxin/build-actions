@@ -16,10 +16,10 @@ on:
       REPO_BRANCH:
         description: '大雕源码'
         required: true
-        default: 'openwrt-23.05'
+        default: '23.05'
         type: choice
         options:
-          - 'openwrt-23.05'
+          - '23.05'
       CONFIG_FILE:
         description: '请选择配置文件'
         required: true
