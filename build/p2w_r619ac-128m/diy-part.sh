@@ -92,3 +92,18 @@ EOF
 # 在线更新时，删除不想保留固件的某个文件，在EOF跟EOF之间加入删除代码，记住这里对应的是固件的文件路径，比如： rm -rf /etc/config/luci
 cat >>$DELETE <<-EOF
 EOF
+
+# ========== 竞斗云2.0 WiFi caldata DTS修复补丁 ==========
+# 进入lede源码目录
+cd ${GITHUB_WORKSPACE}/openwrt
+# 遍历ipq40xx补丁并强制打补丁（不加||true，失败直接终止编译）
+PATCH_DIR=${GITHUB_WORKSPACE}/patches/target/ipq40xx
+if [ -d "${PATCH_DIR}" ]; then
+    echo "开始应用p2w_r619ac无线修复补丁"
+    for patch in ${PATCH_DIR}/*.patch; do
+        echo "应用补丁：$patch"
+        patch -p1 < "${patch}"
+    done
+    echo "补丁应用完成"
+fi
+# ========================================================
