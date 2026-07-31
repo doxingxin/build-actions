@@ -4,6 +4,20 @@
 # 自行拉取插件之前请SSH连接进入固件配置里面确认过没有你要的插件再单独拉取你需要的插件
 # 不要一下就拉取别人一个插件包N多插件的，多了没用，增加编译错误，自己需要的才好
 
+# ========== 竞斗云2.0 WiFi caldata DTS修复补丁 ==========
+# 进入lede源码目录
+cd ${GITHUB_WORKSPACE}/openwrt
+# 遍历ipq40xx补丁并强制打补丁（不加||true，失败直接终止编译）
+PATCH_DIR=${GITHUB_WORKSPACE}/patches/target/ipq40xx
+if [ -d "${PATCH_DIR}" ]; then
+    echo "开始应用p2w_r619ac无线修复补丁"
+    for patch in ${PATCH_DIR}/*.patch; do
+        echo "应用补丁：$patch"
+        patch -p1 < "${patch}"
+    done
+    echo "补丁应用完成"
+fi
+# ========================================================
 
 # 后台IP设置
 export Ipv4_ipaddr="192.168.2.3"            # 修改openwrt后台地址(填0为关闭)
