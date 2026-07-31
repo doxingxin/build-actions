@@ -16,14 +16,14 @@ on:
       REPO_BRANCH:
         description: '大雕源码'
         required: true
-        default: 'master'
+        default: 'openwrt-23.05'
         type: choice
         options:
-          - 'master'
+          - 'openwrt-23.05'
       CONFIG_FILE:
         description: '请选择配置文件'
         required: true
-        default: 'x86_64'
+        default: 'p2w_r619ac-128m'
         type: choice
         options:
           - 'armsr_rootfs_tar_gz'
