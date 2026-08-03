@@ -19,6 +19,13 @@ if [ -d "${PATCH_DIR}" ]; then
 fi
 # ========================================================
 
+#===========================强制替换低版本 backports 源码===========================
+cd ${HOME_PATH}/package/kernel/mac80211
+# 删除官方6.6.15源码，拉取兼容老版本
+rm -rf backports
+git clone https://git.kernel.org/pub/scm/linux/kernel/git/backports/backports.git -b backports-5.15 --depth 1 backports
+# =================================================================================
+
 # 后台IP设置
 export Ipv4_ipaddr="192.168.2.3"            # 修改openwrt后台地址(填0为关闭)
 export Netmask_netm="255.255.255.0"         # IPv4 子网掩码（默认：255.255.255.0）(填0为不作修改)
