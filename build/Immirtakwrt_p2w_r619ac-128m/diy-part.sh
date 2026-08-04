@@ -7,6 +7,13 @@
 # 移除ipq40xx内核MMC冲突内置补丁，避免打补丁失败
 rm -f ${HOME_PATH}/target/linux/ipq40xx/patches-5.15/401-mmc-sdhci-msm-comment-unused-sdhci_msm_set_clock.patch
 
+# --------------升级rust工具链解决smartdns-ui版本报错-------------------
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source "$HOME/.cargo/env"
+rustup default stable
+rustup update
+#---------------------------------------------------------------------
+
 # 后台IP设置
 export Ipv4_ipaddr="192.168.2.3"            # 修改openwrt后台地址(填0为关闭)
 export Netmask_netm="255.255.255.0"         # IPv4 子网掩码（默认：255.255.255.0）(填0为不作修改)
