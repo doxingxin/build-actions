@@ -4,6 +4,22 @@
 # 自行拉取插件之前请SSH连接进入固件配置里面确认过没有你要的插件再单独拉取你需要的插件
 # 不要一下就拉取别人一个插件包N多插件的，多了没用，增加编译错误，自己需要的才好
 
+# 升级Rust工具链，解决smartdns-ui rustc版本过低报错
+if ! command -v rustup &> /dev/null; then
+    echo "=== 开始安装rustup ==="
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+fi
+# 加载rust环境
+source "$HOME/.cargo/env"
+# 导出PATH到当前脚本全局，同时写入GitHub全局路径
+export PATH="$HOME/.cargo/bin:$PATH"
+echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+# 更新工具链
+rustup update stable
+rustup default stable
+rustc --version
+cargo --version
+
 # 移除ipq40xx内核MMC冲突内置补丁，避免打补丁失败
 rm -f ${HOME_PATH}/target/linux/ipq40xx/patches-5.15/401-mmc-sdhci-msm-comment-unused-sdhci_msm_set_clock.patch
 
