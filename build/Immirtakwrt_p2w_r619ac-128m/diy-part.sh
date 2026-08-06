@@ -23,6 +23,16 @@ cargo --version
 # 移除ipq40xx内核MMC冲突内置补丁，避免打补丁失败
 rm -f ${HOME_PATH}/target/linux/ipq40xx/patches-5.15/401-mmc-sdhci-msm-comment-unused-sdhci_msm_set_clock.patch
 
+# 彻底删除smartdns-ui Rust编译目录，根治rust版本报错
+SMARTDNS_UI_PATH="${HOME_PATH}/feeds/dstheme/relevance/openwrt-smartdns/plugin/smartdns-ui"
+if [ -d "$SMARTDNS_UI_PATH" ]; then
+    rm -rf "$SMARTDNS_UI_PATH"
+    echo "已移除smartdns-ui源码，跳过所有Rust编译流程"
+fi
+# 刷新feeds，同步目录删除变更
+./scripts/feeds install -a
+
+
 # 后台IP设置
 export Ipv4_ipaddr="192.168.2.3"            # 修改openwrt后台地址(填0为关闭)
 export Netmask_netm="255.255.255.0"         # IPv4 子网掩码（默认：255.255.255.0）(填0为不作修改)
