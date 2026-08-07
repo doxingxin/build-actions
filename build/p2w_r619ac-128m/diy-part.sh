@@ -30,7 +30,7 @@ fi
 
 # 后台IP设置
 export Ipv4_ipaddr="192.168.2.3"
-export Netmask_netm="255.255.0"
+export Netmask_netm="255.255.255.0"
 export Op_name="OpenWrt-Xing"
 
 # 内核和系统分区大小
