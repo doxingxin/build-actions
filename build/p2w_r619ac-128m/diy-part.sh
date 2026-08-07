@@ -60,7 +60,7 @@ export OpenClash_branch="0"
 export Customized_Information="$(TZ=UTC-8 date "+%Y.%m.%d")"
 
 # 更换内核
-export Replace_Kernel="0"
+export Replace_Kernel="5.15"
 
 # 免密登录
 export Password_free_login="1"
