@@ -56,6 +56,11 @@ export Delete_unnecessary_items="1"          # 个别机型内一堆其他机型
 export Disable_53_redirection="0"            # 删除DNS强制重定向53端口防火墙规则(个别源码本身不带此功能)(1为启用命令,填0为不作修改)
 export Cancel_running="1"                    # 取消路由器每天跑分任务(个别源码本身不带此功能)(1为启用命令,填0为不作修改)
 
+# 直接关闭ath10k debug，规避list_count_nodes编译报错
+sed -i 's/CONFIG_ATH10K_DEBUG=y/# CONFIG_ATH10K_DEBUG is not set/' .config
+sed -i 's/CONFIG_ATH10K_DEBUGFS=y/# CONFIG_ATH10K_DEBUGFS is not set/' .config
+make defconfig
+
 # 修改插件名字
 grep -rl '"终端"' . | xargs -r sed -i 's?"终端"?"TTYD"?g'
 grep -rl '"TTYD 终端"' . | xargs -r sed -i 's?"TTYD 终端"?"TTYD"?g'
