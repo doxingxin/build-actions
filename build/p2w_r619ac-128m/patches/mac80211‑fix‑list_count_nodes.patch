@@ -1,0 +1,17 @@
+diff --git a/package/kernel/mac80211/regular/patches/ath10k-fix-list_count_nodes.patch b/package/kernel/mac80211/regular/patches/ath10k-fix-list_count_nodes.patch
+new file mode 100644
+index 0000000..7212249
+--- /dev/null
++++ b/package/kernel/mac80211/regular/patches/ath10k-fix-list_count_nodes.patch
+@@ -0,0 +1,14 @@
++--- a/drivers/net/wireless/ath/ath10k/debug.c
+++++ b/drivers/net/wireless/ath/ath10k/debug.c
++@@ -293,7 +293,7 @@ void ath10k_debug_fw_stats_process(struct ath10k *ar, struct sk_buff *skb)
++ 	struct ath10k_fw_stats_peer *peer_stats;
++ 	size_t num_peers;
++ 
++-	num_peers = list_count_nodes(&ar->debug.fw_stats.peers);
+++	num_peers = list_lru_count_node(&ar->debug.fw_stats.peers);
++ 
++ 	skb_put(skb, sizeof(*hdr));
++ 	hdr = (void *)skb->data;
