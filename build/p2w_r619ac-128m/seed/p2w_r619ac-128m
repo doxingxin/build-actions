@@ -4,6 +4,8 @@ CONFIG_TARGET_ipq40xx_generic_DEVICE_p2w_r619ac-128m=y
 CONFIG_ATH10K_LEDS=y
 CONFIG_ATH10K_THERMAL=y
 CONFIG_PACKAGE_6in4=y
+CONFIG_PACKAGE_ath10k-board-qca9984=y
+CONFIG_PACKAGE_ath10k-firmware-qca9984=y
 CONFIG_PACKAGE_auto-scripts=y
 CONFIG_PACKAGE_banip=y
 CONFIG_PACKAGE_boost=y
@@ -29,10 +31,6 @@ CONFIG_PACKAGE_kcptun-client=y
 CONFIG_PACKAGE_kcptun-config=y
 CONFIG_PACKAGE_kmod-ath10k=y
 # CONFIG_PACKAGE_kmod-ath10k-ct is not set
-CONFIG_PACKAGE_ath10k-firmware-qca9984=y
-# ct驱动全部取消
-# CONFIG_PACKAGE_kmod-ath10k-ct is not set
-# CONFIG_PACKAGE_ath10k-firmware-qca9984-ct is not set
 CONFIG_PACKAGE_kmod-crypto-crc32c=y
 CONFIG_PACKAGE_kmod-ipt-conntrack-extra=m
 CONFIG_PACKAGE_kmod-ipt-fullconenat=m
