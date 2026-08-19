@@ -106,12 +106,19 @@ echo "======================================================"
 # 竞斗云2.0 直接覆盖完整修复DTS文件（LEDE 5.10）
 # ==============================================
 PATCH_DTS=${GITHUB_WORKSPACE}/build/p2w_r619ac-128m/patches/ipq40xx/p2w_r619ac-128m-fixed.dts
-TARGET_DTS=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/image/p2w_r619ac-128m.dts
+TARGET_DTS=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/files/p2w_r619ac-128m.dts
+
+echo "====调试：查看build/p2w_r619ac‑128m/patches/ipq40xx目录===="
+ls -la ${GITHUB_WORKSPACE}/build/p2w_r619ac-128m/patches/ipq40xx/ || echo "目录不存在"
+echo "====调试：查找openwrt内部p2w dts真实位置===="
+find ${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx -name "*p2w*.dts"
+echo "======================================================"
+
 if [ -f "${PATCH_DTS}" ] && [ -f "${TARGET_DTS}" ];then
     echo "✅ 找到修复DTS，备份原始dts"
     cp "${TARGET_DTS}" "${TARGET_DTS}.bak"
     cp "${PATCH_DTS}" "${TARGET_DTS}"
-    echo "✅ DTS文件覆盖完成，WiFi nvmem-caldata修复完成"
+    echo "✅ DTS文件覆盖完成，WiFi nvmem‑caldata修复完成"
 else
     echo "⚠️ DTS修复跳过，缺少文件"
     echo "PATCH_DTS=${PATCH_DTS}"
