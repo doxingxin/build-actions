@@ -64,17 +64,12 @@ export Disable_53_redirection="0"            # 删除DNS强制重定向53端口�
 export Cancel_running="1"                    # 取消路由器每天跑分任务(个别源码本身不带此功能)(1为启用命令,填0为不作修改)
 
 # =====================修复ath10k list_count_nodes编译报错=====================
-# 源码目录mac80211，不要操作build_dir，build_dir编译会重建
 MAC80211_MK=./package/kernel/mac80211/Makefile
 if [ -f "${MAC80211_MK}" ];then
-    # 方案：关闭ath10k debug模块，通过config关闭，不在源码Makefile删除
-    echo "mac80211 source Makefile exist, will disable ath10k debug in defconfig phase"
+    echo "mac80211 source Makefile exist, debug配置后续在diy-part2.sh处理"
 else
     echo "WARN: mac80211 Makefile not found, skip ath10k debug fix"
 fi
-# 注意：真正关闭CONFIG_ATH10K_DEBUG / CONFIG_ATH10K_DEBUGFS 需要放到 diy-part2.sh
-# diy‑part2.sh 在 make defconfig **之后**执行，./scripts/config 才可以锁死配置
-# ==========================================================================
 
 # 修改插件名字
 grep -rl '"终端"' . | xargs -r sed -i 's?"终端"?"TTYD"?g'
