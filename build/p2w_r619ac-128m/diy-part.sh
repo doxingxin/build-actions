@@ -64,11 +64,16 @@ export Disable_53_redirection="0"            # 删除DNS强制重定向53端口�
 export Cancel_running="1"                    # 取消路由器每天跑分任务(个别源码本身不带此功能)(1为启用命令,填0为不作修改)
 
 # =====================修复ath10k list_count_nodes编译报错=====================
-# 【注意】./scripts/config 移到 diy‑part2.sh！这里只直接修改源码绕过debug.c编译
-if [ -f "./package/kernel/mac80211/backports-regular/Makefile" ];then
-    sed -i '/ath10k\/debug.o/d' ./package/kernel/mac80211/backports-regular/Makefile
-    echo "已移除ath10k debug.o编译项，规避list_count_nodes报错"
+# 源码目录mac80211，不要操作build_dir，build_dir编译会重建
+MAC80211_MK=./package/kernel/mac80211/Makefile
+if [ -f "${MAC80211_MK}" ];then
+    # 方案：关闭ath10k debug模块，通过config关闭，不在源码Makefile删除
+    echo "mac80211 source Makefile exist, will disable ath10k debug in defconfig phase"
+else
+    echo "WARN: mac80211 Makefile not found, skip ath10k debug fix"
 fi
+# 注意：真正关闭CONFIG_ATH10K_DEBUG / CONFIG_ATH10K_DEBUGFS 需要放到 diy-part2.sh
+# diy‑part2.sh 在 make defconfig **之后**执行，./scripts/config 才可以锁死配置
 # ==========================================================================
 
 # 修改插件名字
@@ -98,12 +103,11 @@ EOF
 # ==============================================
 PATCH_DTS=${GITHUB_WORKSPACE}/patches/ipq40xx/p2w_r619ac-128m-fixed.dts
 TARGET_DTS=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/image/p2w_r619ac-128m.dts
-
 if [ -f "${PATCH_DTS}" ] && [ -f "${TARGET_DTS}" ];then
     echo "✅ 找到修复DTS，备份原始dts"
     cp "${TARGET_DTS}" "${TARGET_DTS}.bak"
     cp "${PATCH_DTS}" "${TARGET_DTS}"
-    echo "✅ DTS文件覆盖完成，WiFi nvmem‑caldata修复完成"
+    echo "✅ DTS文件覆盖完成，WiFi nvmem-caldata修复完成"
 else
     echo "⚠️ DTS修复跳过，缺少文件"
     echo "PATCH_DTS=${PATCH_DTS}"
