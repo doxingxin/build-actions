@@ -94,53 +94,25 @@ ImmortalWrt-p2w_r619ac-128m-generic-squashfs-rootfs.img.gz
 EOF
 
 # ==============================================
-# 竞斗云2.0 p2w_r619ac‑128m DTS nvmem‑caldata修复
-# 修复WiFi：读不到出厂caldata，SSID无关联设备
-# 【LEDE 5.10内核路径 files‑5.10】
+# 方案A：使用patch补丁修复竞斗云2.0 nvmem‑caldata WiFi
 # ==============================================
-DTS_FILE="./target/linux/ipq40xx/files-5.10/dts/qcom/p2w_r619ac-128m.dts"
-echo "检测DTS文件路径: ${DTS_FILE}"
-if [ ! -f "${DTS_FILE}" ];then
-    echo "【警告】找不到p2w_r619ac‑128m.dts 文件，跳过DTS补丁，请核对源码路径！"
-    ls ./target/linux/ipq40xx/
+PATCH_SRC=${GITHUB_WORKSPACE}/patches/ipq40xx/p2w_r619ac-128m-nvmem-caldata.patch
+DTS_TARGET=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/image/p2w_r619ac-128m.dts
+
+if [ -f "${PATCH_SRC}" ] && [ -f "${DTS_TARGET}" ];then
+    echo "✅找到补丁文件，开始应用竞斗云DTS修复patch"
+    # 在openwrt根目录执行patch
+    cd ${GITHUB_WORKSPACE}/openwrt
+    patch -p1 < "${PATCH_SRC}"
+    if [ $? -eq 0 ];then
+        echo "✅DTS补丁应用成功"
+    else
+        echo "❌DTS补丁打失败，上游dts文件内容不匹配，请重新生成diff补丁"
+    fi
 else
-    echo "【DTS补丁】开始修复竞斗云2.0 nvmem caldata"
-    # 备份原始dts
-    cp "${DTS_FILE}" "${DTS_FILE}.bak"
-    # 删除旧的硬编码 local‑mac‑address / qcom,ath10k‑calibration‑virtual
-    sed -i '/qcom,ath10k-calibration-virtual/d' "${DTS_FILE}"
-    sed -i '/local-mac-address/d' "${DTS_FILE}"
-    # 往&wifi0节点插入nvmem引用，读取flash 0x100000偏移的caldata
-    sed -i '/&wifi0 {/a \
-        nvmem-cells = <&caldata_wifi0>, <&macaddr_wifi0>;\
-        nvmem-cell-names = "calibration", "mac-address";' "${DTS_FILE}"
-    sed -i '/&wifi1 {/a \
-        nvmem-cells = <&caldata_wifi1>, <&macaddr_wifi1>;\
-        nvmem-cell-names = "calibration", "mac-address";' "${DTS_FILE}"
-    # 在 aliases{} 节点后面添加 nvmem‑cells 定义，读取art分区数据
-    sed -i '/aliases: aliases {/a \
-        art: art@100000 {\
-            compatible = "qcom,msm-part";\
-            reg = <0x100000 0x10000>;\
-            #address-cells = <1>;\
-            #size-cells = <1>;\
-            status = "okay";\
-\
-            caldata_wifi0: caldata@0 {\
-                reg = <0x0 0x1000>;\
-            };\
-            caldata_wifi1: caldata@1000 {\
-                reg = <0x1000 0x1000>;\
-            };\
-            macaddr_wifi0: mac@6 {\
-                reg = <0x6 0x6>;\
-            };\
-            macaddr_wifi1: mac@12 {\
-                reg = <0xc 0x6>;\
-            };\
-        };' "${DTS_FILE}"
-    echo "【DTS补丁】补丁执行完成，对比备份文件查看修改差异"
-    diff "${DTS_FILE}.bak" "${DTS_FILE}" || true
+    echo "⚠️跳过DTS补丁，缺少补丁或者目标DTS文件"
+    echo "PATCH_SRC=${PATCH_SRC}"
+    echo "DTS_TARGET=${DTS_TARGET}"
 fi
 
 # 在线更新时，删除不想保留固件的某个文件，在EOF跟EOF之间加入删除代码，记住这里对应的是固件的文件路径，比如： rm -rf /etc/config/luci
