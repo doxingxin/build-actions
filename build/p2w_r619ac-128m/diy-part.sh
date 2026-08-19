@@ -57,13 +57,11 @@ export Disable_53_redirection="0"            # 删除DNS强制重定向53端口�
 export Cancel_running="1"                    # 取消路由器每天跑分任务(个别源码本身不带此功能)(1为启用命令,填0为不作修改)
 
 # =====================修复ath10k list_count_nodes编译报错=====================
-sed -i 's/CONFIG_ATH10K_DEBUG=y/# CONFIG_ATH10K_DEBUG is not set/' .config
-sed -i 's/CONFIG_ATH10K_DEBUGFS=y/# CONFIG_ATH10K_DEBUGFS is not set/' .config
+# 使用openwrt自带scripts/config工具修改配置，CI无终端不会报错
+./scripts/config --set-val ATH10K_DEBUG n
+./scripts/config --set-val ATH10K_DEBUGFS n
 
-# olddefconfig：仅更新依赖，不会重置手动关闭的选项，禁止make defconfig
-make olddefconfig
-
-# 打印校验，看Actions日志输出确认是否关闭成功
+# 校验输出
 echo "==== ATH10K DEBUG CONFIG CHECK ===="
 grep -E "ATH10K_DEBUG" .config
 
