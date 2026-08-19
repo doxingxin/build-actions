@@ -1,6 +1,242 @@
-PATCH_DTS=${GITHUB_WORKSPACE}/patches/ipq40xx/p2w_r619ac-128m-fixed.dts
-TARGET_DTS=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/image/p2w_r619ac-128m.dts
-if [ -f "${PATCH_DTS}" ];then
-    echo "直接覆盖DTS文件"
-    cp "${PATCH_DTS}" "${TARGET_DTS}"
-fi
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+#include "qcom-ipq4019.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	model = "P&W R619AC (128M)";
+	compatible = "p2w,r619ac-128m", "qcom,ipq4019";
+
+	aliases {
+		serial0 = &blsp1_uart1;
+		led-boot = &led_sys;
+		led-failsafe = &led_sys;
+		led-running = &led_sys;
+		led-upgrade = &led_sys;
+		label-mac-device = &gmac0;
+	};
+
+	art: art@100000 {
+		compatible = "qcom,msm-part";
+		reg = <0x100000 0x10000>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		status = "okay";
+
+		caldata_wifi0: caldata@0 {
+			reg = <0x0 0x1000>;
+		};
+		caldata_wifi1: caldata@1000 {
+			reg = <0x1000 0x1000>;
+		};
+		macaddr_wifi0: mac@6 {
+			reg = <0x6 0x6>;
+		};
+		macaddr_wifi1: mac@c {
+			reg = <0xc 0x6>;
+		};
+	};
+
+	soc {
+		rng@22000 {
+			status = "okay";
+		};
+
+		mdio@90000 {
+			status = "okay";
+			pinctrl-0 = <&mdio_pins>;
+			pinctrl-names = "default";
+		};
+
+		ess-psgmii@98000 {
+			status = "okay";
+		};
+
+		tcsr@1949000 {
+			compatible = "qcom,tcsr";
+			reg = <0x1949000 0x100>;
+			qcom,wifi_glb_cfg = <TCSR_WIFI_GLB_CFG>;
+		};
+
+		tcsr@194b000 {
+			compatible = "qcom,tcsr";
+			reg = <0x194b000 0x100>;
+			qcom,usb-hsphy-mode-select = <TCSR_USB_HSPHY_HOST_MODE>;
+		};
+
+		ess_tcsr@1953000 {
+			compatible = "qcom,tcsr";
+			reg = <0x1953000 0x1000>;
+			qcom,ess-ifi_mode;
+			qcom,ess-cfg_rm_ddr_set;
+		};
+
+		usb3@af00000 {
+			status = "okay";
+		};
+
+		blsp1_uart1: serial@78b0000 {
+			pinctrl-0 = <&uart1_pins>;
+			pinctrl-names = "default";
+			status = "okay";
+		};
+	};
+
+	keys {
+		compatible = "gpio-keys";
+
+		reset {
+			label = "reset";
+			gpios = <&tlmm 18 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led_sys: sys {
+			label = "r619ac:green:sys";
+			gpios = <&tlmm 5 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	wifi0 {
+		nvmem-cells = <&caldata_wifi0>, <&macaddr_wifi0>;
+		nvmem-cell-names = "calibration", "mac-address";
+		status = "okay";
+	};
+
+	wifi1 {
+		nvmem-cells = <&caldata_wifi1>, <&macaddr_wifi1>;
+		nvmem-cell-names = "calibration", "mac-address";
+		status = "okay";
+	};
+};
+
+&gmac0 {
+	status = "okay";
+};
+
+&nand {
+	status = "okay";
+
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		partition@0 {
+			label = "sbl1";
+			reg = <0x0 0x400000>;
+			read-only;
+		};
+
+		partition@400000 {
+			label = "sbl1_1";
+			reg = <0x400000 0x400000>;
+			read-only;
+		};
+
+		partition@800000 {
+			label = "cdt";
+			reg = <0x800000 0x200000>;
+			read-only;
+		};
+
+		partition@a00000 {
+			label = "cdt_1";
+			reg = <0xa00000 0x200000>;
+			read-only;
+		};
+
+		partition@c00000 {
+			label = "qsee";
+			reg = <0xc00000 0x500000>;
+			read-only;
+		};
+
+		partition@1100000 {
+			label = "qsee_1";
+			reg = <0x1100000 0x500000>;
+			read-only;
+		};
+
+		partition@1600000 {
+			label = "devcfg";
+			reg = <0x1600000 0x200000>;
+			read-only;
+		};
+
+		partition@1800000 {
+			label = "devcfg_1";
+			reg = <0x1800000 0x200000>;
+			read-only;
+		};
+
+		partition@1a00000 {
+			label = "apdp";
+			reg = <0x1a00000 0x200000>;
+			read-only;
+		};
+
+		partition@1c00000 {
+			label = "apdp_1";
+			reg = <0x1c00000 0x200000>;
+			read-only;
+		};
+
+		partition@1e00000 {
+			label = "rpm";
+			reg = <0x1e00000 0x200000>;
+			read-only;
+		};
+
+		partition@2000000 {
+			label = "rpm_1";
+			reg = <0x2000000 0x200000>;
+			read-only;
+		};
+
+		partition@2200000 {
+			label = "modem";
+			reg = <0x2200000 0x600000>;
+			read-only;
+		};
+
+		partition@2800000 {
+			label = "modem_1";
+			reg = <0x2800000 0x600000>;
+			read-only;
+		};
+
+		partition@2e00000 {
+			label = "BL";
+			reg = <0x2e00000 0x800000>;
+			read-only;
+		};
+
+		partition@3600000 {
+			label = "BL_1";
+			reg = <0x3600000 0x800000>;
+			read-only;
+		};
+
+		partition@3e00000 {
+			label = "u-boot-env";
+			reg = <0x3e00000 0x200000>;
+		};
+
+		partition@4000000 {
+			label = "art";
+			reg = <0x4000000 0x100000>;
+			read-only;
+		};
+
+		partition@4100000 {
+			label = "ubi";
+			reg = <0x4100000>;
+		};
+	};
+};
