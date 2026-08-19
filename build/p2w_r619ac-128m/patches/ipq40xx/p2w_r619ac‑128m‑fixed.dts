@@ -1,0 +1,6 @@
+PATCH_DTS=${GITHUB_WORKSPACE}/patches/ipq40xx/p2w_r619ac-128m-fixed.dts
+TARGET_DTS=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/image/p2w_r619ac-128m.dts
+if [ -f "${PATCH_DTS}" ];then
+    echo "直接覆盖DTS文件"
+    cp "${PATCH_DTS}" "${TARGET_DTS}"
+fi
