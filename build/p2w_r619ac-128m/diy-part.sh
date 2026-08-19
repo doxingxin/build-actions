@@ -94,25 +94,20 @@ ImmortalWrt-p2w_r619ac-128m-generic-squashfs-rootfs.img.gz
 EOF
 
 # ==============================================
-# 方案A：使用patch补丁修复竞斗云2.0 nvmem‑caldata WiFi
+# 竞斗云2.0 直接覆盖完整修复DTS文件（LEDE 5.10）
 # ==============================================
-PATCH_SRC=${GITHUB_WORKSPACE}/patches/ipq40xx/p2w_r619ac-128m-nvmem-caldata.patch
-DTS_TARGET=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/image/p2w_r619ac-128m.dts
+PATCH_DTS=${GITHUB_WORKSPACE}/patches/ipq40xx/p2w_r619ac-128m-fixed.dts
+TARGET_DTS=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/image/p2w_r619ac-128m.dts
 
-if [ -f "${PATCH_SRC}" ] && [ -f "${DTS_TARGET}" ];then
-    echo "✅找到补丁文件，开始应用竞斗云DTS修复patch"
-    # 在openwrt根目录执行patch
-    cd ${GITHUB_WORKSPACE}/openwrt
-    patch -p1 < "${PATCH_SRC}"
-    if [ $? -eq 0 ];then
-        echo "✅DTS补丁应用成功"
-    else
-        echo "❌DTS补丁打失败，上游dts文件内容不匹配，请重新生成diff补丁"
-    fi
+if [ -f "${PATCH_DTS}" ] && [ -f "${TARGET_DTS}" ];then
+    echo "✅ 找到修复DTS，备份原始dts"
+    cp "${TARGET_DTS}" "${TARGET_DTS}.bak"
+    cp "${PATCH_DTS}" "${TARGET_DTS}"
+    echo "✅ DTS文件覆盖完成，WiFi nvmem‑caldata修复完成"
 else
-    echo "⚠️跳过DTS补丁，缺少补丁或者目标DTS文件"
-    echo "PATCH_SRC=${PATCH_SRC}"
-    echo "DTS_TARGET=${DTS_TARGET}"
+    echo "⚠️ DTS修复跳过，缺少文件"
+    echo "PATCH_DTS=${PATCH_DTS}"
+    echo "TARGET_DTS=${TARGET_DTS}"
 fi
 
 # 在线更新时，删除不想保留固件的某个文件，在EOF跟EOF之间加入删除代码，记住这里对应的是固件的文件路径，比如： rm -rf /etc/config/luci
