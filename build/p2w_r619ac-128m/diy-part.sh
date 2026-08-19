@@ -93,15 +93,23 @@ ImmortalWrt-p2w_r619ac-128m-generic.manifest
 ImmortalWrt-p2w_r619ac-128m-generic-squashfs-rootfs.img.gz
 EOF
 
-# ========== 竞斗云2.0 LEDE 修复WiFi caldata 打patch补丁 ==========
-PATCH_FILE=${GITHUB_WORKSPACE}/build/p2w_r619ac-128m/patches/ipq40xx/p2w_r619ac-nvmem-caldata.patch
-echo "====调试：确认补丁文件是否存在===="
-ls -l "${PATCH_FILE}"
-if [ -f "${PATCH_FILE}" ];then
-    echo "✅ 开始应用竞斗云2.0 nvmem‑caldata DTS补丁"
-    patch -p1 --no-backup-if-mismatch < "${PATCH_FILE}" || echo "⚠️ patch应用失败：源码版本不匹配/已经打过补丁"
+# =========竞斗云2.0 LEDE WiFi修复：直接修改dtsi，不需要外部patch文件========
+DTSI_FILE=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/files/ipq4019-p2w-r619ac.dtsi
+
+if [ -f "${DTSI_FILE}" ];then
+    echo "✅ 找到竞斗云dtsi文件：${DTSI_FILE}"
+    # 判断是否已经打过修复，避免重复插入
+    if ! grep -q "nvmem-cells = <&caldata" "${DTSI_FILE}";then
+        echo "✅ 开始插入nvmem‑caldata WiFi校准节点"
+        sed -i '/wifi@0 {/a\                        nvmem-cells = <&caldata 0>;' "${DTSI_FILE}"
+        sed -i '/wifi@1 {/a\                        nvmem-cells = <&caldata 0x1000>;' "${DTSI_FILE}"
+    else
+        echo "ℹ️ dtsi已经存在nvmem‑caldata配置，跳过修改"
+    fi
+    echo "====修改后wifi节点片段===="
+    grep -A3 "wifi@" "${DTSI_FILE}"
 else
-    echo "❌ 补丁文件不存在：${PATCH_FILE}"
+    echo "❌ dtsi文件不存在，路径：${DTSI_FILE}"
 fi
 
 # 调试：查看LEDE源码中竞斗云设备相关代码位置
