@@ -56,10 +56,22 @@ export Delete_unnecessary_items="1"          # 个别机型内一堆其他机型
 export Disable_53_redirection="0"            # 删除DNS强制重定向53端口防火墙规则(个别源码本身不带此功能)(1为启用命令,填0为不作修改)
 export Cancel_running="1"                    # 取消路由器每天跑分任务(个别源码本身不带此功能)(1为启用命令,填0为不作修改)
 
-# 直接关闭ath10k debug，规避list_count_nodes编译报错
+# =====================修复ath10k list_count_nodes编译报错=====================
 sed -i 's/CONFIG_ATH10K_DEBUG=y/# CONFIG_ATH10K_DEBUG is not set/' .config
 sed -i 's/CONFIG_ATH10K_DEBUGFS=y/# CONFIG_ATH10K_DEBUGFS is not set/' .config
-make defconfig
+
+# olddefconfig：仅更新依赖，不会重置手动关闭的选项，禁止make defconfig
+make olddefconfig
+
+# 打印校验，看Actions日志输出确认是否关闭成功
+echo "==== ATH10K DEBUG CONFIG CHECK ===="
+grep -E "ATH10K_DEBUG" .config
+
+# 兜底方案：直接删除debug.o编译条目，无论配置如何，不去编译报错debug.c源码
+if [ -f "./package/kernel/mac80211/backports-regular/Makefile" ];then
+    sed -i '/ath10k\/debug.o/d' ./package/kernel/mac80211/backports-regular/Makefile
+fi
+# ==========================================================================
 
 # 修改插件名字
 grep -rl '"终端"' . | xargs -r sed -i 's?"终端"?"TTYD"?g'
