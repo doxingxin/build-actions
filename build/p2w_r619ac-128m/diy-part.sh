@@ -4,7 +4,7 @@
 # 自行拉取插件之前请SSH连接进入固件配置里面确认过没有你要的插件再单独拉取你需要的插件
 # 不要一下就拉取别人一个插件包N多插件的，多了没用，增加编译错误，自己需要的才好
 
-# 第一步：强制切到openwrt源码目录，非常关键
+# 强制切到openwrt源码目录
 cd ${GITHUB_WORKSPACE}/openwrt || {
     echo "ERROR: 进入openwrt源码目录失败！"
     exit 1
@@ -98,32 +98,20 @@ ImmortalWrt-p2w_r619ac-128m-generic.manifest
 ImmortalWrt-p2w_r619ac-128m-generic-squashfs-rootfs.img.gz
 EOF
 
-echo "====调试：查看build/p2w_r619ac‑128m/patches/ipq40xx目录===="
-ls -la ${GITHUB_WORKSPACE}/build/p2w_r619ac-128m/patches/ipq40xx/ || echo "目录不存在"
-echo "======================================================"
-
-# ==============================================
-# 竞斗云2.0 直接覆盖完整修复DTS文件（LEDE 5.10）
-# ==============================================
-PATCH_DTS=${GITHUB_WORKSPACE}/build/p2w_r619ac-128m/patches/ipq40xx/p2w_r619ac-128m-fixed.dts
-TARGET_DTS=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/files/p2w_r619ac-128m.dts
-
-echo "====调试：查看build/p2w_r619ac‑128m/patches/ipq40xx目录===="
-ls -la ${GITHUB_WORKSPACE}/build/p2w_r619ac-128m/patches/ipq40xx/ || echo "目录不存在"
-echo "====调试：查找openwrt内部p2w dts真实位置===="
-find ${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx -name "*p2w*.dts"
-echo "======================================================"
-
-if [ -f "${PATCH_DTS}" ] && [ -f "${TARGET_DTS}" ];then
-    echo "✅ 找到修复DTS，备份原始dts"
-    cp "${TARGET_DTS}" "${TARGET_DTS}.bak"
-    cp "${PATCH_DTS}" "${TARGET_DTS}"
-    echo "✅ DTS文件覆盖完成，WiFi nvmem‑caldata修复完成"
+# ========== 竞斗云2.0 LEDE 修复WiFi caldata 打patch补丁 ==========
+PATCH_FILE=${GITHUB_WORKSPACE}/build/p2w_r619ac-128m/patches/ipq40xx/p2w_r619ac-nvmem-caldata.patch
+echo "====调试：确认补丁文件是否存在===="
+ls -l "${PATCH_FILE}"
+if [ -f "${PATCH_FILE}" ];then
+    echo "✅ 开始应用竞斗云2.0 nvmem‑caldata DTS补丁"
+    patch -p1 --no-backup-if-mismatch < "${PATCH_FILE}" || echo "⚠️ patch应用失败：源码版本不匹配/已经打过补丁"
 else
-    echo "⚠️ DTS修复跳过，缺少文件"
-    echo "PATCH_DTS=${PATCH_DTS}"
-    echo "TARGET_DTS=${TARGET_DTS}"
+    echo "❌ 补丁文件不存在：${PATCH_FILE}"
 fi
+
+# 调试：查看LEDE源码中竞斗云设备相关代码位置
+echo "====调试：搜索LEDE源码p2w_r619ac设备定义===="
+grep -r "p2w_r619ac" target/linux/ipq40xx/
 
 # 在线更新时，删除不想保留固件的某个文件，在EOF跟EOF之间加入删除代码，记住这里对应的是固件的文件路径，比如： rm -rf /etc/config/luci
 cat >>$DELETE <<-EOF
