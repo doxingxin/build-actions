@@ -98,10 +98,14 @@ ImmortalWrt-p2w_r619ac-128m-generic.manifest
 ImmortalWrt-p2w_r619ac-128m-generic-squashfs-rootfs.img.gz
 EOF
 
+echo "====调试：查看build/p2w_r619ac‑128m/patches/ipq40xx目录===="
+ls -la ${GITHUB_WORKSPACE}/build/p2w_r619ac-128m/patches/ipq40xx/ || echo "目录不存在"
+echo "======================================================"
+
 # ==============================================
 # 竞斗云2.0 直接覆盖完整修复DTS文件（LEDE 5.10）
 # ==============================================
-PATCH_DTS=${GITHUB_WORKSPACE}/patches/ipq40xx/p2w_r619ac-128m-fixed.dts
+PATCH_DTS=${GITHUB_WORKSPACE}/build/p2w_r619ac-128m/patches/ipq40xx/p2w_r619ac-128m-fixed.dts
 TARGET_DTS=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/image/p2w_r619ac-128m.dts
 if [ -f "${PATCH_DTS}" ] && [ -f "${TARGET_DTS}" ];then
     echo "✅ 找到修复DTS，备份原始dts"
