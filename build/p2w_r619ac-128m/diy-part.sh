@@ -114,6 +114,36 @@ else
     echo "❌ dtsi文件不存在，路径：${DTSI_FILE}"
 fi
 
+# 生成临时PT2脚本，make defconfig完成之后运行
+TMP_PT2=/tmp/apply_pt2.sh
+cat >${TMP_PT2} <<'EOF'
+#!/bin/bash
+cd ${GITHUB_WORKSPACE}/openwrt
+echo "==== 临时PT2脚本：关闭ath10k‑ct驱动与debugfs ===="
+
+sed -i 's/CONFIG_PACKAGE_kmod-ath10k-ct=y/# CONFIG_PACKAGE_kmod-ath10k-ct is not set/g' .config
+sed -i 's/CONFIG_PACKAGE_ath10k-firmware-qca9984-ct=y/# CONFIG_PACKAGE_ath10k-firmware-qca9984-ct is not set/g' .config
+sed -i 's/CONFIG_PACKAGE_ath10k-ct-smallbuffers=y/# CONFIG_PACKAGE_ath10k-ct-smallbuffers is not set/g' .config
+
+sed -i 's/CONFIG_ATH10K_DEBUGFS=y/# CONFIG_ATH10K_DEBUGFS is not set/g' .config
+sed -i 's/CONFIG_ATH10K_DEBUG=y/# CONFIG_ATH10K_DEBUG is not set/g' .config
+
+./scripts/config --disable CONFIG_PACKAGE_kmod-ath10k-ct
+./scripts/config --disable CONFIG_PACKAGE_ath10k-firmware-qca9984-ct
+./scripts/config --disable CONFIG_PACKAGE_ath10k-ct-smallbuffers
+./scripts/config --disable CONFIG_ATH10K_DEBUGFS
+./scripts/config --disable CONFIG_ATH10K_DEBUG
+
+echo "==== 当前ath10k相关配置打印 ===="
+grep ath10k .config
+EOF
+
+chmod +x ${TMP_PT2}
+echo "bash ${TMP_PT2}" >> ${COMMON_SH}
+
+echo "✅ diy‑part.sh追加段执行完毕，PT2逻辑挂载完成"
+#===================== 追加结束 =====================
+
 # 调试：查看LEDE源码中竞斗云设备相关代码位置
 echo "====调试：搜索LEDE源码p2w_r619ac设备定义===="
 grep -r "p2w_r619ac" target/linux/ipq40xx/
