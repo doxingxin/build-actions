@@ -96,30 +96,33 @@ EOF
 echo "====查找所有p2w相关dts/dtsi===="
 find ${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx -name "*r619ac*"
 
-# =========竞斗云2.0 LEDE WiFi nvmem‑caldata修复========
+#===================== 追加开始：竞斗云DTS补丁 + 延迟PT2配置修改 =====================
+cd ${GITHUB_WORKSPACE}/openwrt
+
+echo "==== diy‑part.sh 追加段：修改竞斗云2.0 DTSI ===="
 DTSI_FILE=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/files/arch/arm/boot/dts/qcom-ipq4019-r619ac.dtsi
 
 if [ -f "${DTSI_FILE}" ];then
     echo "✅ 找到竞斗云dtsi文件：${DTSI_FILE}"
-    if ! grep -q "nvmem-cells = <&caldata" "${DTSI_FILE}";then
+    if ! grep -q "nvmem‑cells" "${DTSI_FILE}";then
         echo "✅ 开始插入nvmem‑caldata WiFi校准节点"
-        sed -i '/wifi@0 {/a\                        nvmem-cells = <&caldata 0>;' "${DTSI_FILE}"
-        sed -i '/wifi@1 {/a\                        nvmem-cells = <&caldata 0x1000>;' "${DTSI_FILE}"
+        sed -i '/wifi@0 {/a\                        nvmem‑cells = <&caldata 0>;' "${DTSI_FILE}"
+        sed -i '/wifi@1 {/a\                        nvmem‑cells = <&caldata 0>;' "${DTSI_FILE}"
     else
-        echo "ℹ️ dtsi已经存在nvmem‑caldata配置，跳过修改"
+        echo "ℹ️ dtsi已经存在nvmem‑cells，跳过修改"
     fi
-    echo "====修改后wifi节点片段===="
-    grep -A3 "wifi@" "${DTSI_FILE}"
+    echo "==== 修改后wifi节点片段 ===="
+    grep -A5 "wifi@" "${DTSI_FILE}"
 else
-    echo "❌ dtsi文件不存在，路径：${DTSI_FILE}"
+    echo "❌ dtsi文件不存在，DTS补丁失败"
 fi
 
-# 生成临时PT2脚本，make defconfig完成之后运行
-TMP_PT2=/tmp/apply_pt2.sh
-cat >${TMP_PT2} <<'EOF'
+# Diy_menu3 钩子：make defconfig完成之后才会执行，不会提前运行
+MENU3_SCRIPT=${GITHUB_WORKSPACE}/tmp_menu3.sh
+cat >${MENU3_SCRIPT} <<'EOF'
 #!/bin/bash
 cd ${GITHUB_WORKSPACE}/openwrt
-echo "==== 临时PT2脚本：关闭ath10k‑ct驱动与debugfs ===="
+echo "==== Diy_menu3钩子：关闭ath10k‑ct驱动与debugfs ===="
 
 sed -i 's/CONFIG_PACKAGE_kmod-ath10k-ct=y/# CONFIG_PACKAGE_kmod-ath10k-ct is not set/g' .config
 sed -i 's/CONFIG_PACKAGE_ath10k-firmware-qca9984-ct=y/# CONFIG_PACKAGE_ath10k-firmware-qca9984-ct is not set/g' .config
@@ -138,15 +141,12 @@ echo "==== 当前ath10k相关配置打印 ===="
 grep ath10k .config
 EOF
 
-chmod +x ${TMP_PT2}
-echo "bash ${TMP_PT2}" >> ${COMMON_SH}
+chmod +x ${MENU3_SCRIPT}
+# 写入环境变量，框架@need action执行Diy_menu3时会读取这个变量执行脚本
+echo "DIY_MENU3_SCRIPT=${MENU3_SCRIPT}" >> $GITHUB_ENV
 
-echo "✅ diy‑part.sh追加段执行完毕，PT2逻辑挂载完成"
+echo "✅ diy‑part.sh追加段执行完毕，PT2逻辑挂载到Diy_menu3钩子，make defconfig完成后运行"
 #===================== 追加结束 =====================
-
-# 调试：查看LEDE源码中竞斗云设备相关代码位置
-echo "====调试：搜索LEDE源码p2w_r619ac设备定义===="
-grep -r "p2w_r619ac" target/linux/ipq40xx/
 
 # 在线更新时，删除不想保留固件的某个文件，在EOF跟EOF之间加入删除代码，记住这里对应的是固件的文件路径，比如： rm -rf /etc/config/luci
 cat >>$DELETE <<-EOF
