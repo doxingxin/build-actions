@@ -4,13 +4,6 @@
 # 自行拉取插件之前请SSH连接进入固件配置里面确认过没有你要的插件再单独拉取你需要的插件
 # 不要一下就拉取别人一个插件包N多插件的，多了没用，增加编译错误，自己需要的才好
 
-# 强制切到openwrt源码目录
-cd ${GITHUB_WORKSPACE}/openwrt || {
-    echo "ERROR: 进入openwrt源码目录失败！"
-    exit 1
-}
-echo "当前源码PWD=$(pwd)"
-
 # 后台IP设置
 export Ipv4_ipaddr="192.168.2.3"            # 修改openwrt后台地址(填0为关闭)
 export Netmask_netm="255.255.255.0"         # IPv4 子网掩码（默认：255.255.255.0）(填0为不作修改)
@@ -63,14 +56,6 @@ export Delete_unnecessary_items="1"          # 个别机型内一堆其他机型
 export Disable_53_redirection="0"            # 删除DNS强制重定向53端口防火墙规则(个别源码本身不带此功能)(1为启用命令,填0为不作修改)
 export Cancel_running="1"                    # 取消路由器每天跑分任务(个别源码本身不带此功能)(1为启用命令,填0为不作修改)
 
-# =====================修复ath10k list_count_nodes编译报错=====================
-MAC80211_MK=./package/kernel/mac80211/Makefile
-if [ -f "${MAC80211_MK}" ];then
-    echo "mac80211 source Makefile exist, debug配置后续在diy-part2.sh处理"
-else
-    echo "WARN: mac80211 Makefile not found, skip ath10k debug fix"
-fi
-
 # 修改插件名字
 grep -rl '"终端"' . | xargs -r sed -i 's?"终端"?"TTYD"?g'
 grep -rl '"TTYD 终端"' . | xargs -r sed -i 's?"TTYD 终端"?"TTYD"?g'
@@ -93,60 +78,45 @@ ImmortalWrt-p2w_r619ac-128m-generic.manifest
 ImmortalWrt-p2w_r619ac-128m-generic-squashfs-rootfs.img.gz
 EOF
 
-echo "====查找所有p2w相关dts/dtsi===="
-find ${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx -name "*r619ac*"
-
-#===================== 追加开始：竞斗云DTS补丁 + 延迟PT2配置修改 =====================
 cd ${GITHUB_WORKSPACE}/openwrt
 
-echo "==== diy‑part.sh 追加段：修改竞斗云2.0 DTSI ===="
-DTSI_FILE=${GITHUB_WORKSPACE}/openwrt/target/linux/ipq40xx/files/arch/arm/boot/dts/qcom-ipq4019-r619ac.dtsi
+# 直接修改内核源码树dts，不是files目录！！
+DTS_PATH=target/linux/ipq40xx/files-5.10/arch/arm/boot/dts/qcom/p2w_r619ac-128m.dts
 
-if [ -f "${DTSI_FILE}" ];then
-    echo "✅ 找到竞斗云dtsi文件：${DTSI_FILE}"
-    if ! grep -q "nvmem‑cells" "${DTSI_FILE}";then
-        echo "✅ 开始插入nvmem‑caldata WiFi校准节点"
-        sed -i '/wifi@0 {/a\                        nvmem‑cells = <&caldata 0>;' "${DTSI_FILE}"
-        sed -i '/wifi@1 {/a\                        nvmem‑cells = <&caldata 0>;' "${DTSI_FILE}"
-    else
-        echo "ℹ️ dtsi已经存在nvmem‑cells，跳过修改"
-    fi
-    echo "==== 修改后wifi节点片段 ===="
-    grep -A5 "wifi@" "${DTSI_FILE}"
-else
-    echo "❌ dtsi文件不存在，DTS补丁失败"
-fi
+cat > ${DTS_PATH} <<'EOF'
+#include "ipq4018.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
 
-# Diy_menu3 钩子：make defconfig完成之后才会执行，不会提前运行
-MENU3_SCRIPT=${GITHUB_WORKSPACE}/tmp_menu3.sh
-cat >${MENU3_SCRIPT} <<'EOF'
-#!/bin/bash
-cd ${GITHUB_WORKSPACE}/openwrt
-echo "==== Diy_menu3钩子：关闭ath10k‑ct驱动与debugfs ===="
+/ {
+	model = "P&W R619AC (128M)";
+	compatible = "p2w,r619ac-128m", "qcom,ipq4018";
+};
 
-sed -i 's/CONFIG_PACKAGE_kmod-ath10k-ct=y/# CONFIG_PACKAGE_kmod-ath10k-ct is not set/g' .config
-sed -i 's/CONFIG_PACKAGE_ath10k-firmware-qca9984-ct=y/# CONFIG_PACKAGE_ath10k-firmware-qca9984-ct is not set/g' .config
-sed -i 's/CONFIG_PACKAGE_ath10k-ct-smallbuffers=y/# CONFIG_PACKAGE_ath10k-ct-smallbuffers is not set/g' .config
+&art {
+	compatible = "qcom,msm-art";
+	reg = <0x0 0x40000>;
+	#address-cells = <1>;
+	#size-cells = <1>;
 
-sed -i 's/CONFIG_ATH10K_DEBUGFS=y/# CONFIG_ATH10K_DEBUGFS is not set/g' .config
-sed -i 's/CONFIG_ATH10K_DEBUG=y/# CONFIG_ATH10K_DEBUG is not set/g' .config
+	caldata_wifi0: caldata@1000 {
+		reg = <0x1000 0x1000>;
+	};
+	caldata_wifi1: caldata@5000 {
+		reg = <0x5000 0x1000>;
+	};
+};
 
-./scripts/config --disable CONFIG_PACKAGE_kmod-ath10k-ct
-./scripts/config --disable CONFIG_PACKAGE_ath10k-firmware-qca9984-ct
-./scripts/config --disable CONFIG_PACKAGE_ath10k-ct-smallbuffers
-./scripts/config --disable CONFIG_ATH10K_DEBUGFS
-./scripts/config --disable CONFIG_ATH10K_DEBUG
+&wifi0 {
+	nvmem-cells = <&caldata_wifi0>;
+	nvmem-cell-names = "calibration";
+};
 
-echo "==== 当前ath10k相关配置打印 ===="
-grep ath10k .config
+&wifi1 {
+	nvmem-cells = <&caldata_wifi1>;
+	nvmem-cell-names = "calibration";
+};
 EOF
-
-chmod +x ${MENU3_SCRIPT}
-# 写入环境变量，框架@need action执行Diy_menu3时会读取这个变量执行脚本
-echo "DIY_MENU3_SCRIPT=${MENU3_SCRIPT}" >> $GITHUB_ENV
-
-echo "✅ diy‑part.sh追加段执行完毕，PT2逻辑挂载到Diy_menu3钩子，make defconfig完成后运行"
-#===================== 追加结束 =====================
 
 # 在线更新时，删除不想保留固件的某个文件，在EOF跟EOF之间加入删除代码，记住这里对应的是固件的文件路径，比如： rm -rf /etc/config/luci
 cat >>$DELETE <<-EOF
