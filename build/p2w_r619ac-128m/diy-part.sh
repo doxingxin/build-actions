@@ -79,43 +79,30 @@ ImmortalWrt-p2w_r619ac-128m-generic-squashfs-rootfs.img.gz
 EOF
 
 cd ${GITHUB_WORKSPACE}/openwrt
+mkdir -p target/linux/ipq40xx/patches-5.10
 
-# 直接修改内核源码树dts，不是files目录！！
-DTS_PATH=target/linux/ipq40xx/files-5.10/arch/arm/boot/dts/qcom/p2w_r619ac-128m.dts
-
-cat > ${DTS_PATH} <<'EOF'
-#include "ipq4018.dtsi"
-#include <dt-bindings/gpio/gpio.h>
-#include <dt-bindings/input/input.h>
-
-/ {
-	model = "P&W R619AC (128M)";
-	compatible = "p2w,r619ac-128m", "qcom,ipq4018";
-};
-
-&art {
-	compatible = "qcom,msm-art";
-	reg = <0x0 0x40000>;
-	#address-cells = <1>;
-	#size-cells = <1>;
-
-	caldata_wifi0: caldata@1000 {
-		reg = <0x1000 0x1000>;
-	};
-	caldata_wifi1: caldata@5000 {
-		reg = <0x5000 0x1000>;
-	};
-};
-
-&wifi0 {
-	nvmem-cells = <&caldata_wifi0>;
-	nvmem-cell-names = "calibration";
-};
-
-&wifi1 {
-	nvmem-cells = <&caldata_wifi1>;
-	nvmem-cell-names = "calibration";
-};
+cat > target/linux/ipq40xx/patches-5.10/999-fix-p2w-r619ac-caldata.patch <<'EOF'
+--- a/target/linux/ipq40xx/files/arch/arm/boot/dts/qcom/p2w_r619ac-128m.dts
++++ b/target/linux/ipq40xx/files/arch/arm/boot/dts/qcom/p2w_r619ac-128m.dts
+@@ -1,2 +1,22 @@
+ #include "qcom-ipq4019-r619ac.dtsi"
++
++&art {
++	#address-cells = <1>;
++	#size-cells = <1>;
++	caldata_wifi0: caldata@1000 { reg = <0x1000 0x1000>; };
++	caldata_wifi1: caldata@5000 { reg = <0x5000 0x1000>; };
++};
++
++&wifi0 {
++	nvmem-cells = <&caldata_wifi0>;
++	nvmem-cell-names = "calibration";
++};
++
++&wifi1 {
++	nvmem-cells = <&caldata_wifi1>;
++	nvmem-cell-names = "calibration";
++};
 EOF
 
 # 在线更新时，删除不想保留固件的某个文件，在EOF跟EOF之间加入删除代码，记住这里对应的是固件的文件路径，比如： rm -rf /etc/config/luci
